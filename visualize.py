@@ -4,7 +4,7 @@ import plotly.express as px
 import pandas as pd  
 
 # file name
-file = "AirPassengers.csv"
+file = "stockdata.csv"
 
 # Reading the CSV file into a DataFrame
 df = pd.read_csv(file, header=0, encoding='unicode_escape')
@@ -23,4 +23,4 @@ st.write(f"{title} plotted as a line chart.")
 # Displaying the DataFrame
 st.write(df)  
 
-st.line_chart(df['#Passengers']) # Creating a line chart using Plotly Express
+st.line_chart(df['Close']) # Creating a line chart using Plotly Express

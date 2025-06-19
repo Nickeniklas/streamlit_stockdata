@@ -11,9 +11,13 @@ Command to activate virtual environment:
 ```
 conda activate <my-env>
 ```
-## 2. Run script to launch streamlit in browser 
+## 2. Download required packages
+```
+pip install -r requirements.txt
+```
+## 3. Run script to launch streamlit in browser 
 
 Command to run Visualization in browser:
 ```
-streamlit run streamlit_airpassengers.py
+streamlit run visualize.py
 ```
