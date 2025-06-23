@@ -15,7 +15,26 @@ conda activate <my-env>
 ```
 pip install -r requirements.txt
 ```
-## 3. Run script to launch streamlit in browser 
+## 3. Create .env for news api key and add it to .gitignore 
+**.env** file:
+```
+FINNHUB_API_KEY=your_actual_api_key
+```
+**.gitignore** file:
+```
+.env
+```
+
+## 4. Run scripts
+Command to run Fetch News Data:
+```
+python fetch_news.py
+```
+
+Command to run Fetch Stock Data:
+```
+python fetch_stockdata.py
+```
 
 Command to run Visualization in browser:
 ```
