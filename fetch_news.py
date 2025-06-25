@@ -2,6 +2,7 @@ import finnhub
 import json
 from dotenv import load_dotenv
 import os
+from datetime import datetime
 
 # get api key from .env file
 load_dotenv()
@@ -14,26 +15,34 @@ finnhub_client = finnhub.Client(api_key=api_key)
 # fetch news 
 marketNewsData = finnhub_client.general_news('general', min_id=0)
 
-# filter with keyword "Trump"
-filtered = [item for item in marketNewsData if "Trump" in item["headline"]]
-# message if no news found
-if not filtered:
-    print("No news headlines found mentioning Trump.")
-else:
-    # Extract top 3 news with only wanted fields
-    simplifiedNews = [
-        {
-            'headline': news['headline'],
-            'summary': news['summary'],
-            'url': news['url']
-        }
-        for news in filtered[:3]
-    ] 
+# set keyword for news
+news_keywords = ["Trump", "Apple", "NVIDIA", "Oracle", "Microsoft"]
 
-    # Save to a JSON file
-    with open('filtered_news.json', 'w', encoding='utf-8') as f:
-        json.dump(simplifiedNews, f, ensure_ascii=False, indent=2)
+# loop through all keywords and export filtered news
+for keyword in news_keywords:
+    # filter with keyword 
+    filtered = [item for item in marketNewsData if keyword in item["headline"]]
+    # message if no news found
+    if not filtered:
+        print(f"No news headlines found mentioning {keyword}.")
+    else:
+        # Extract top 3 news with only wanted fields
+        simplifiedNews = [
+            {
+                'headline': news['headline'],
+                'summary': news['summary'],
+                'source' : news['source'],
+                'url': news['url'],
+                'datetime' : datetime.fromtimestamp(news['datetime']).strftime('%d-%m-%y'),
+                'keyword' : keyword
+            }
+            for news in filtered[:3] # top 3 articles only
+        ] 
 
-    # save message
-    print("Saved top news to filtered_news.json")
+        # Save to a JSON file
+        with open(f'news_{keyword}.json', 'w', encoding='utf-8') as f:
+            json.dump(simplifiedNews, f, ensure_ascii=False, indent=2)
+
+        # save message
+        print(f"Saved top {keyword} news as 'news_{keyword}.json")
    
