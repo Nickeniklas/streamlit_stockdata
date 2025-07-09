@@ -11,10 +11,16 @@ Command to activate virtual environment:
 ```
 conda activate <my-env>
 ```
+
 ## 2. Download required packages
 ```
 pip install -r requirements.txt
 ```
+If already installed:
+```
+pip install --upgrade -r requirements.txt
+```
+
 ## 3. Create .env for news api key and add it to .gitignore 
 **.env** file:
 ```
