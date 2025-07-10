@@ -39,10 +39,14 @@ for keyword in news_keywords:
             for news in filtered[:3] # top 3 articles only
         ] 
 
+        # output folder and pathfile name
+        folder = "news"
+        os.makedirs(folder, exist_ok=True)  # Create the folder if it doesn't exist
+        filepath = os.path.join(folder, f"news_{keyword}.json")
         # Save to a JSON file
-        with open(f'news_{keyword}.json', 'w', encoding='utf-8') as f:
+        with open(filepath, 'w', encoding='utf-8') as f:
             json.dump(simplifiedNews, f, ensure_ascii=False, indent=2)
 
         # save message
-        print(f"Saved top {keyword} news as 'news_{keyword}.json")
+        print(f"Saved top {keyword} news as '{filepath}'")
    

@@ -1,5 +1,13 @@
 [
   {
+    "headline": "Should Apple replace Tim Cook as CEO? These analysts want a dramatic change.",
+    "summary": "Analysts at LightShed think Apple would benefit from a CEO more focused on the product side of the business — or it risks missing out on the AI boom.",
+    "source": "MarketWatch",
+    "url": "https://www.marketwatch.com/story/should-apple-replace-tim-cook-as-ceo-these-analysts-want-a-dramatic-change-d1e067dd",
+    "datetime": "09-07-25",
+    "keyword": "Apple"
+  },
+  {
     "headline": "Nvidia briefly becomes the first $4 trillion company. How it beat Microsoft and Apple to the crown.",
     "summary": "The chip maker’s stock touched an intraday level needed to achieve a $4 trillion market cap, but has since pulled back slightly.",
     "source": "MarketWatch",
@@ -13,14 +21,6 @@
     "source": "MarketWatch",
     "url": "https://www.marketwatch.com/story/a-key-apple-executive-is-leaving-at-a-pivotal-time-but-heres-why-investors-shouldnt-worry-d93ebc98",
     "datetime": "09-07-25",
-    "keyword": "Apple"
-  },
-  {
-    "headline": "'F1' is Apple's highest-grossing theatrical film ever",
-    "summary": "Apple's \"F1: The Movie\" nears $300 million at the global box office, the highest-grossing haul of a film ever released by the studio.",
-    "source": "CNBC",
-    "url": "https://www.cnbc.com/2025/07/07/f1-apple-highest-grossing-theatrical-film.html",
-    "datetime": "07-07-25",
     "keyword": "Apple"
   }
 ]
