@@ -1,21 +1,12 @@
-import yfinance as yf
-import pandas as pd
+# Finnhub API
+import finnhub
+from dotenv import load_dotenv
+import time
+import requests
 import os
 
-# arguments for API call
-ticker = 'AAPL'
-period = "1d"
-interval = "1h"
-
-# fetch
-data = yf.download(ticker, period=period, interval=interval)
-
-# output folder and pathfile name
-folder = "stockdata"
-os.makedirs(folder, exist_ok=True)  # Create the folder if it doesn't exist
-filepath = os.path.join(folder, f"stockdata_{ticker}.csv")
-
-# export as csv
-data.to_csv(filepath)
-
-print(f"Saved CSV as '{filepath}'")
+# get api key from .env file
+load_dotenv()
+api_key = os.getenv('TWELVE_API_KEY')
+if not api_key:
+    raise ValueError("No API key found. Please set TWELVE_API_KEY in .env")
