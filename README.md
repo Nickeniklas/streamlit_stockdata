@@ -2,6 +2,8 @@
 
 Dynamic Visualization with Streamlit
 
+TwelveData, Finnhub, Streamlit
+
 ## 1. Create virutal environment and activate it
 Command to create conda virtual environment:
 ```
@@ -16,7 +18,7 @@ conda activate <my-env>
 ```
 pip install -r requirements.txt
 ```
-If already installed:
+If already installed(also update existing packages):
 ```
 pip install --upgrade -r requirements.txt
 ```

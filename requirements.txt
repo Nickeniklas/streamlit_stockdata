@@ -1,5 +1,8 @@
 streamlit
-yfinance
 pandas
 finnhub-python
 python-dotenv
+twelvedata
+dotenv
+requests
+plotly
