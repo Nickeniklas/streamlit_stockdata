@@ -11,6 +11,9 @@ file_path = "stockdata/stockdata_AAPL.csv"
 
 # Reading the CSV file into a DataFrame
 df = pd.read_csv(file_path, header=0, encoding='unicode_escape')
+df['datetime'] = pd.to_datetime(df['datetime'])  # if not already datetime
+df.set_index('datetime', inplace=True)
+#print(df.head(10))
 
 # set title
 title = file_path.removesuffix(".csv")
@@ -23,10 +26,10 @@ st.markdown('<style>div.block-container{padding-top:2rem;}</style>', unsafe_allo
 
 st.write(f"{title} plotted as a line chart.")
 
-# Displaying the DataFrame
-st.write(df)  
+st.write(df)  # Displaying the DataFrame
 
-st.line_chart(df['close']) # Creating a line chart using Plotly Express
+st.subheader("Close Price for AAPL")
+st.line_chart(df['close']) # line chart of the 'close' column
 
 # GENERAL NEWS
 
