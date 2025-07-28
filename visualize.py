@@ -38,6 +38,9 @@ fig = px.line(
 )
 st.plotly_chart(fig)
 
+# filter: number of days to show
+days = st.slider("How many past days to show", min_value=1, max_value=100, value=30)
+
 #st.subheader("Close Price for AAPL")
 #st.line_chart(df['close']) # line chart of the 'close' column
 
