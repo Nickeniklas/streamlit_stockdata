@@ -1,6 +1,7 @@
 # Streamlit Data Visualization
 import streamlit as st
 import plotly.express as px  
+import plotly.graph_objects as go
 import pandas as pd  
 import json
 import glob
@@ -33,35 +34,63 @@ st.dataframe(df, use_container_width=True)
 # filter slider element: number of days to show
 days = st.slider("How many past days to show", min_value=1, max_value=90, value=30)
 
+# Moving Averages
+df["MA10"] = df["close"].rolling(window=10).mean()
+df["MA50"] = df["close"].rolling(window=50).mean()
+
 # Filter to only show rows from the last N days
 cutoff = df['datetime'].max() - pd.Timedelta(days=days)
 df_filtered = df[df['datetime'] >= cutoff]
 
+# Melt data to long format for px.line
+df_melted = df_filtered.melt(
+    id_vars='datetime',
+    value_vars=['close', 'MA10', 'MA50'],
+    var_name='Series',
+    value_name='Price'
+)
+
 # Plotly chart
-fig = px.line(
+fig = go.Figure() # Create base figure
+
+# Add traces for each series
+# 1. Main close line with volume in hover
+fig_close = px.line(
     df_filtered,
     x='datetime',
     y='close',
     hover_data=['volume'],
-    #color_discrete_sequence=['blue'],
     title=f'Closing Prices for {ticker}',
-    labels={'close': 'Price (€)', 'datetime': 'Date'},
-    template='seaborn'
+    labels={'close': 'Price (€)', 'datetime': 'Date'}
 )
-fig.update_layout(
-    #paper_bgcolor='white',
-    #plot_bgcolor='white',
-    #font_color='black'
+fig.add_trace(fig_close.data[0])
+
+# 2. MA10 line (no volume in hover)
+fig_ma10 = px.line(
+    df_filtered,
+    x='datetime',
+    y='MA10',
+    labels={'MA10': 'MA10'}
 )
+fig_ma10.update_traces(line=dict(color='red'), name='MA10')
+fig.add_trace(fig_ma10.data[0])
+
+# 3. MA50 line (no volume in hover)
+fig_ma50 = px.line(
+    df_filtered,
+    x='datetime',
+    y='MA50',
+    labels={'MA50': 'MA50'}
+)
+fig_ma50.update_traces(line=dict(color='purple'), name='MA50')
+fig.add_trace(fig_ma50.data[0])
+
+fig.update_layout(title=f'{ticker} Price with Moving Averages')
 
 st.subheader(f"Graph: {ticker} Closing Prices")
-st.plotly_chart(fig)
-
-#st.subheader("Close Price for AAPL")
-#st.line_chart(df['close']) # line chart of the 'close' column
+st.plotly_chart(fig, use_container_width=True) # Display the Plotly chart 
 
 # GENERAL NEWS
-
 # List all news JSON files like news_*.json
 all_news_files = glob.glob("news/news_*.json")
 all_news_data = []
@@ -78,7 +107,7 @@ try:
     for article in all_news_data: # Loop through and display each article
         st.subheader(article['headline'])
         st.write(article['summary'])
-        st.write(f'**keyword: {article['keyword']}**')
+        st.write(f"**keyword: {article['keyword']}**")
         st.markdown(f"**Source:** {article['source']} — {article['url']}  ") # TBA: | **Date:** {article['date']}
         st.markdown('---')
 except KeyError as e:
