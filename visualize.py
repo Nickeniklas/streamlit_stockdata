@@ -7,27 +7,27 @@ import json
 import glob
 import os
 
-# Stock Data file name
-file_path = "stockdata/stockdata_AAPL.csv"
-
-# Reading the CSV file into a DataFrame
-df = pd.read_csv(file_path, header=0, encoding='unicode_escape')
-df['datetime'] = pd.to_datetime(df['datetime'])  # if not already datetime
-#df.set_index('datetime', inplace=True)
-#print(df.head(10))
-
-# file path of stock data
-path = file_path.removesuffix(".csv")
-ticker = path.split("_")[-1]
-
 # Page setup
 st.set_page_config(page_title="Stocks and News", page_icon=":bar_chart:", layout="wide")  # page configuration
 
 st.title(" :bar_chart: Stocks and News")  # title of the web page
-st.markdown('<style>div.block-container{padding-top:2rem;}</style>', unsafe_allow_html=True)  # Adding custom CSS to the page
+st.markdown('<style>div.block-container{padding-top:2rem;}</style>', unsafe_allow_html=True)  
+
+# Find all stock files dynamically (assuming 'stockdata/stockdata_XXX.csv' format)
+stock_files = glob.glob('stockdata/stockdata_*.csv')
+# Extract ticker names from filenames
+tickers = [f.split('_')[-1].replace('.csv', '') for f in stock_files]
+
+# select ticker dropdown
+selected_ticker = st.selectbox("Select Stock Ticker", tickers)
+
+# load selected ticker data
+file_path = f'stockdata/stockdata_{selected_ticker}.csv'
+df = pd.read_csv(file_path)
+df['datetime'] = pd.to_datetime(df['datetime'])
 
 # STOCK DATA TABLE
-st.subheader(f"Table: {ticker}")
+st.subheader(f"Table: {selected_ticker}")
 st.dataframe(df, use_container_width=True) 
 
 # STOCK DATA GRAPH
@@ -42,14 +42,6 @@ df["MA50"] = df["close"].rolling(window=50).mean()
 cutoff = df['datetime'].max() - pd.Timedelta(days=days)
 df_filtered = df[df['datetime'] >= cutoff]
 
-# Melt data to long format for px.line
-df_melted = df_filtered.melt(
-    id_vars='datetime',
-    value_vars=['close', 'MA10', 'MA50'],
-    var_name='Series',
-    value_name='Price'
-)
-
 # Plotly chart
 fig = go.Figure() # Create base figure
 
@@ -60,7 +52,7 @@ fig_close = px.line(
     x='datetime',
     y='close',
     hover_data=['volume'],
-    title=f'Closing Prices for {ticker}',
+    title=f'Closing Prices for {selected_ticker}',
     labels={'close': 'Price (€)', 'datetime': 'Date'}
 )
 fig.add_trace(fig_close.data[0])
@@ -85,9 +77,9 @@ fig_ma50 = px.line(
 fig_ma50.update_traces(line=dict(color='purple'), name='MA50')
 fig.add_trace(fig_ma50.data[0])
 
-fig.update_layout(title=f'{ticker} Price with Moving Averages')
+fig.update_layout(title=f'{selected_ticker} Price with Moving Averages')
 
-st.subheader(f"Graph: {ticker} Closing Prices")
+st.subheader(f"Graph: {selected_ticker} Line Chart with Moving Averages")
 st.plotly_chart(fig, use_container_width=True) # Display the Plotly chart 
 
 # GENERAL NEWS
