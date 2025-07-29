@@ -15,31 +15,47 @@ df['datetime'] = pd.to_datetime(df['datetime'])  # if not already datetime
 #df.set_index('datetime', inplace=True)
 #print(df.head(10))
 
-# set title
-title = file_path.removesuffix(".csv")
+# file path of stock data
+path = file_path.removesuffix(".csv")
+ticker = path.split("_")[-1]
 
 # Page setup
-st.set_page_config(page_title=f"{title} Visualization", page_icon=":bar_chart:", layout="wide")  # page configuration
+st.set_page_config(page_title="Stocks and News", page_icon=":bar_chart:", layout="wide")  # page configuration
 
-st.title(f" :bar_chart: Visualization of {title}")  # title of the web page
+st.title(" :bar_chart: Stocks and News")  # title of the web page
 st.markdown('<style>div.block-container{padding-top:2rem;}</style>', unsafe_allow_html=True)  # Adding custom CSS to the page
 
-st.write(f"{title} plotted as a line chart.")
+# STOCK DATA TABLE
+st.subheader(f"Table: {ticker}")
+st.dataframe(df, use_container_width=True) 
 
-st.write(df)  # Displaying the DataFrame
+# STOCK DATA GRAPH
+# filter slider element: number of days to show
+days = st.slider("How many past days to show", min_value=1, max_value=90, value=30)
+
+# Filter to only show rows from the last N days
+cutoff = df['datetime'].max() - pd.Timedelta(days=days)
+df_filtered = df[df['datetime'] >= cutoff]
 
 # Plotly chart
 fig = px.line(
-    df,
+    df_filtered,
     x='datetime',
     y='close',
-    title='Closing Prices',
-    labels={'close': 'Price (€)', 'datetime': 'Date'}
+    hover_data=['volume'],
+    #color_discrete_sequence=['blue'],
+    title=f'Closing Prices for {ticker}',
+    labels={'close': 'Price (€)', 'datetime': 'Date'},
+    template='seaborn'
 )
-st.plotly_chart(fig)
+fig.update_layout(
+    #paper_bgcolor='white',
+    #plot_bgcolor='white',
+    #font_color='black'
+)
 
-# filter: number of days to show
-days = st.slider("How many past days to show", min_value=1, max_value=100, value=30)
+st.subheader(f"Graph: {ticker} Closing Prices")
+st.plotly_chart(fig)
 
 #st.subheader("Close Price for AAPL")
 #st.line_chart(df['close']) # line chart of the 'close' column

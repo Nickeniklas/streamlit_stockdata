@@ -19,7 +19,7 @@ symbol = "AAPL"  # You can change this to any symbol
 ts = td.time_series(
     symbol=symbol,
     interval="1day",
-    outputsize=10
+    outputsize=90
 )
 
 # Create the folder if it doesn't exist
