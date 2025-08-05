@@ -16,30 +16,40 @@ st.markdown('<style>div.block-container{padding-top:2rem;}</style>', unsafe_allo
 stock_files = glob.glob('stockdata/stockdata_*.csv')
 # Extract ticker names from filenames
 tickers = [f.split('_')[-1].replace('.csv', '') for f in stock_files]
-# select ticker dropdown
-selected_ticker = st.selectbox("Select Stock Ticker", tickers)
+
+# default ticker selection
+if "selected_ticker" not in st.session_state:
+    st.session_state.selected_ticker = tickers[0]
+# Dropdown for ticker selection
+dropdown_choice = st.selectbox("Select Stock Ticker", tickers, index=tickers.index(st.session_state.selected_ticker))
+if dropdown_choice != st.session_state.selected_ticker:
+    st.session_state.selected_ticker = dropdown_choice
+
+# days filter defualt 30 days
+st.session_state.days = 30
+
 # load selected ticker data
-file_path = f'stockdata/stockdata_{selected_ticker}.csv'
+file_path = f'stockdata/stockdata_{st.session_state.selected_ticker}.csv'
 df = pd.read_csv(file_path)
 df['datetime'] = pd.to_datetime(df['datetime'])
 df = df.sort_values('datetime', ascending=True).reset_index(drop=True)
 
 # FILTER SLIDER ELEMENT: number of days to show
-days = st.slider("How many past days to show", min_value=1, max_value=120, value=30)
+st.session_state.days = st.slider("How many past days to show", min_value=1, max_value=120, value=30)
 
 # Calculate Moving Averages
 df["MA10"] = df["close"].rolling(window=10).mean()
 df["MA50"] = df["close"].rolling(window=50).mean()
 
 # DataFrame Filter by days
-cutoff = df['datetime'].max() - pd.Timedelta(days=days)
+cutoff = df['datetime'].max() - pd.Timedelta(days=st.session_state.days)
 df_filtered = df[df['datetime'] >= cutoff].copy()
 
 # DISPLAY ALL TICKERS CHANGE
 st.subheader("All Tickers Change")
 
-# Start the flex container for ticker cards
-html = '<div style="display: flex; flex-wrap: wrap;">'
+# Make a horizontal layout with Streamlit columns
+columns = st.columns(len(tickers))
 
 for i, ticker in enumerate(tickers):
     # Load ticker data
@@ -47,7 +57,7 @@ for i, ticker in enumerate(tickers):
     df_ticker = pd.read_csv(file_path)
     df_ticker['datetime'] = pd.to_datetime(df_ticker['datetime'])
     df_ticker = df_ticker.sort_values('datetime', ascending=True).reset_index(drop=True)
-    cutoff = df_ticker['datetime'].max() - pd.Timedelta(days=days)
+    cutoff = df_ticker['datetime'].max() - pd.Timedelta(days=st.session_state.days)
     df_ticker_filtered = df_ticker[df_ticker['datetime'] >= cutoff].copy()
 
     # Calculate price change and percentage change
@@ -59,12 +69,28 @@ for i, ticker in enumerate(tickers):
     bg_color = "#d4edda" if change_abs > 0 else "#f8d7da"
     text_color = "#155724" if change_abs > 0 else "#721c24"
 
-    # Show ticker card
-    html += f'<div style="background-color: {bg_color}; color: {text_color}; padding: 1rem; margin: 0.5rem; border-radius: 0.5rem; width: 160px; text-align: center; font-weight: bold;">{ticker}<br>{change_abs:.2f} € ({change_pct:.2f}%)</div>'
-# Close the flex container
-html += '</div>'
-# Display everything at once
-st.markdown(html, unsafe_allow_html=True)
+    with columns[i]:
+        button_label = f"{ticker}\n{change_abs:.2f} € ({change_pct:.2f}%)"
+        
+        # Inject custom button styling
+        st.markdown(f"""
+        <style>
+        div[data-testid="column"] button[data-testid="baseButton"] {{
+            background-color: {bg_color};
+            color: {text_color};
+            padding: 1rem;
+            border-radius: 0.5rem;
+            width: 100%;
+            font-weight: bold;
+            white-space: pre-line;
+        }}
+        </style>
+        """, unsafe_allow_html=True)
+
+        # Button click sets selected ticker
+        if st.button(button_label, key=f"ticker_{ticker}"):
+            st.session_state.selected_ticker = ticker # set ticker
+            st.rerun()  # reflect change immediately
 
 # PLOTLY CHART
 fig = go.Figure() # GO base figure
@@ -78,7 +104,7 @@ fig_close = px.line(
     x='datetime',
     y='close',
     hover_data=['volume'],
-    title=f'Closing Prices for {selected_ticker}',
+    title=f'Closing Prices for {st.session_state.selected_ticker}',
     labels={'close': 'Price (€)', 'datetime': 'Date'}
 )
 line_color = 'green' if change_abs > 0 else 'red'
@@ -104,14 +130,14 @@ fig_ma50.update_traces(line=dict(color='purple', dash='dot'), name='MA50', showl
 fig.add_trace(fig_ma50.data[0])
 # Add legends, axis titles and title
 fig.update_layout(
-    title=f'{selected_ticker} Price with Moving Averages', 
+    title=f'{st.session_state.selected_ticker} Price with Moving Averages', 
     legend_title='Legend',
     xaxis_title='Date',
     yaxis_title='Price (€)',
     )
 # display change in price and percentage
 st.metric(
-    label=f"{selected_ticker}",
+    label=f"{st.session_state.selected_ticker}",
     value=f"{df_filtered['close'].iloc[-1]:.2f} €",
     delta=f"{change_pct:.2f}%"
 )
@@ -119,7 +145,7 @@ st.metric(
 st.plotly_chart(fig, use_container_width=True) 
 
 # STOCK DATA TABLE
-with st.expander(f" 📋 Table: {selected_ticker}", expanded=False):
+with st.expander(f" 📋 Table: {st.session_state.selected_ticker}", expanded=False):
     st.dataframe(df_filtered, height=400, use_container_width=True)
 
 # GENERAL NEWS
