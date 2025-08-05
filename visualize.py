@@ -24,16 +24,49 @@ df = pd.read_csv(file_path)
 df['datetime'] = pd.to_datetime(df['datetime'])
 df = df.sort_values('datetime', ascending=True).reset_index(drop=True)
 
-# filter slider element: number of days to show
+# FILTER SLIDER ELEMENT: number of days to show
 days = st.slider("How many past days to show", min_value=1, max_value=120, value=30)
-# Moving Averages
+
+# Calculate Moving Averages
 df["MA10"] = df["close"].rolling(window=10).mean()
 df["MA50"] = df["close"].rolling(window=50).mean()
-# Filter by days
+
+# DataFrame Filter by days
 cutoff = df['datetime'].max() - pd.Timedelta(days=days)
 df_filtered = df[df['datetime'] >= cutoff].copy()
 
-# Plotly chart
+# DISPLAY ALL TICKERS CHANGE
+st.subheader("All Tickers Change")
+
+# Start the flex container for ticker cards
+html = '<div style="display: flex; flex-wrap: wrap;">'
+
+for i, ticker in enumerate(tickers):
+    # Load ticker data
+    file_path = f'stockdata/stockdata_{ticker}.csv'
+    df_ticker = pd.read_csv(file_path)
+    df_ticker['datetime'] = pd.to_datetime(df_ticker['datetime'])
+    df_ticker = df_ticker.sort_values('datetime', ascending=True).reset_index(drop=True)
+    cutoff = df_ticker['datetime'].max() - pd.Timedelta(days=days)
+    df_ticker_filtered = df_ticker[df_ticker['datetime'] >= cutoff].copy()
+
+    # Calculate price change and percentage change
+    change_abs = df_ticker_filtered['close'].iloc[-1] - df_ticker_filtered['close'].iloc[0]
+    change_pct = (change_abs / df_ticker_filtered['close'].iloc[0]) * 100
+
+    # Display
+    # Color background based on gain/loss
+    bg_color = "#d4edda" if change_abs > 0 else "#f8d7da"
+    text_color = "#155724" if change_abs > 0 else "#721c24"
+
+    # Show ticker card
+    html += f'<div style="background-color: {bg_color}; color: {text_color}; padding: 1rem; margin: 0.5rem; border-radius: 0.5rem; width: 160px; text-align: center; font-weight: bold;">{ticker}<br>{change_abs:.2f} € ({change_pct:.2f}%)</div>'
+# Close the flex container
+html += '</div>'
+# Display everything at once
+st.markdown(html, unsafe_allow_html=True)
+
+# PLOTLY CHART
 fig = go.Figure() # GO base figure
 # Calculate price change and percentage change
 change_abs = df_filtered['close'].iloc[-1] - df_filtered['close'].iloc[0]
