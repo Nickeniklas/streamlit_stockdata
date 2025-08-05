@@ -106,7 +106,7 @@ try:
     for article in all_news_data: # Loop through and display each article
         st.subheader(article['headline'])
         st.write(article['summary'])
-        st.write(f"**keyword: {article['keyword']}**")
+        st.write(f"**Date**: {article['datetime']} | **keyword:** {article['keyword']}")
         st.markdown(f"**Source:** {article['source']} — {article['url']}  ") # TBA: | **Date:** {article['date']}
         st.markdown('---')
 except KeyError as e:
