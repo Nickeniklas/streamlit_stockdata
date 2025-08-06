@@ -22,11 +22,15 @@ if "selected_ticker" not in st.session_state:
     st.session_state.selected_ticker = tickers[0]
 # Dropdown for ticker selection
 dropdown_choice = st.selectbox("Select Stock Ticker", tickers, index=tickers.index(st.session_state.selected_ticker))
+with st.sidebar:
+    dropdown_choice = st.selectbox("Select Stock Ticker", tickers, index=tickers.index(st.session_state.selected_ticker))
+# Update session state if dropdown choice changes
 if dropdown_choice != st.session_state.selected_ticker:
     st.session_state.selected_ticker = dropdown_choice
 
 # days filter defualt 30 days
-st.session_state.days = 30
+if "days" not in st.session_state:
+    st.session_state.days = 30
 
 # load selected ticker data
 file_path = f'stockdata/stockdata_{st.session_state.selected_ticker}.csv'
@@ -34,8 +38,28 @@ df = pd.read_csv(file_path)
 df['datetime'] = pd.to_datetime(df['datetime'])
 df = df.sort_values('datetime', ascending=True).reset_index(drop=True)
 
-# FILTER SLIDER ELEMENT: number of days to show
-st.session_state.days = st.slider("How many past days to show", min_value=1, max_value=120, value=30)
+# FILTER BUTTONS: number of days to show
+filter_days = [(1, "1D"), (30, "1M"), (90, "3M"), (120, "4M")]   
+filter_day_columns = st.sidebar.columns(len(filter_days))  # Create columns for buttons
+# Create the buttons
+with st.sidebar:
+    for i, (days, label) in enumerate(filter_days):
+        # Inject custom CSS
+        st.markdown(f"""
+            <style>
+                .st-key-{label} button {{
+                    width: 3rem;
+                }}
+            </style>
+        """, unsafe_allow_html=True)
+        with filter_day_columns[i]:
+            # Button click sets selected days
+            if st.button(label, key=f"{label}"):
+                st.session_state.days = days # set days
+                st.rerun()  # reflect change immediately
+
+# FILTER SLIDER: number of days to show
+st.session_state.days = st.slider("How many past days to show", min_value=1, max_value=120, value=st.session_state.days)
 
 # Calculate Moving Averages
 df["MA10"] = df["close"].rolling(window=10).mean()
@@ -49,7 +73,7 @@ df_filtered = df[df['datetime'] >= cutoff].copy()
 st.subheader("All Tickers Change")
 
 # Make a horizontal layout with Streamlit columns
-columns = st.columns(len(tickers))
+ticker_card_columns = st.columns(len(tickers))
 
 for i, ticker in enumerate(tickers):
     # Load ticker data
@@ -64,31 +88,24 @@ for i, ticker in enumerate(tickers):
     change_abs = df_ticker_filtered['close'].iloc[-1] - df_ticker_filtered['close'].iloc[0]
     change_pct = (change_abs / df_ticker_filtered['close'].iloc[0]) * 100
 
-    # Display
+    # Display ticker cards
     # Color background based on gain/loss
     bg_color = "#d4edda" if change_abs > 0 else "#f8d7da"
     text_color = "#155724" if change_abs > 0 else "#721c24"
 
-    with columns[i]:
+    with ticker_card_columns[i]:
         button_label = f"{ticker}\n{change_abs:.2f} € ({change_pct:.2f}%)"
-        
-        # Inject custom button styling
+        # Inject custom CSS
         st.markdown(f"""
-        <style>
-        div[data-testid="column"] button[data-testid="baseButton"] {{
-            background-color: {bg_color};
-            color: {text_color};
-            padding: 1rem;
-            border-radius: 0.5rem;
-            width: 100%;
-            font-weight: bold;
-            white-space: pre-line;
-        }}
-        </style>
+            <style>
+                .st-key-{ticker} button {{
+                    background-color: {bg_color};
+                    color: {text_color};
+                }}
+            </style>
         """, unsafe_allow_html=True)
-
         # Button click sets selected ticker
-        if st.button(button_label, key=f"ticker_{ticker}"):
+        if st.button(button_label, key=f"{ticker}"):
             st.session_state.selected_ticker = ticker # set ticker
             st.rerun()  # reflect change immediately
 
