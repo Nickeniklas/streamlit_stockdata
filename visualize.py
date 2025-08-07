@@ -166,13 +166,31 @@ with st.expander(f" 📋 Table: {st.session_state.selected_ticker}", expanded=Fa
     st.dataframe(filtered_ticker, height=400, use_container_width=True)
 
 # MULTI LINE CHART
-st.subheader("Multi-Line Chart of All Tickers")
 # multi line with all tickers
 fig_multi = go.Figure()
 # loop each ticker
-for ticker in st.session_state.tickers:
-    df_ticker = df[df['ticker'] == ticker]
-    fig_multi.add_trace(go.Scatter(x=df_ticker['datetime'], y=df_ticker['close'], mode='lines', name=ticker))
+for ticker in filtered_tickers:
+    df = filtered_tickers[ticker]
+    # Normalize CLOSE column only
+    df_normalized = df.copy()
+    df_normalized['normalized_pct'] = (df['close'] / df['close'].iloc[0] - 1) * 100
+
+    # Add line to figure
+    fig_multi.add_trace(go.Scatter(
+        x=df['datetime'],
+        y=df_normalized['normalized_pct'],
+        mode='lines',
+        name=ticker
+    ))
+fig_multi.update_layout(
+    title="All Tickers Performance (% Change from Start)",
+    xaxis_title="Date",
+    yaxis_title="% Change",
+    legend_title="Ticker",
+    yaxis=dict(ticksuffix="%")
+)
+# display chart
+st.plotly_chart(fig_multi, use_container_width=True)
 
 # GENERAL NEWS
 # List all news JSON files like news_*.json
