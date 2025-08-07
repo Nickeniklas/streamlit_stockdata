@@ -17,6 +17,18 @@ stock_files = glob.glob('stockdata/stockdata_*.csv')
 # Extract ticker names from filenames
 tickers = [f.split('_')[-1].replace('.csv', '') for f in stock_files]
 
+# Initialize session state for tickers if not already set
+if "tickers_data" not in st.session_state:
+    tickers_data = {}
+    for file in glob.glob('stockdata/stockdata_*.csv'):
+        ticker = file.split('_')[-1].replace('.csv', '')
+        df = pd.read_csv(file)
+        df['datetime'] = pd.to_datetime(df['datetime'])
+        df = df.sort_values('datetime').reset_index(drop=True)
+        tickers_data[ticker] = df
+    st.session_state.tickers_data = tickers_data
+
+
 # default ticker selection
 if "selected_ticker" not in st.session_state:
     st.session_state.selected_ticker = tickers[0]
@@ -124,8 +136,10 @@ fig_close = px.line(
     title=f'Closing Prices for {st.session_state.selected_ticker}',
     labels={'close': 'Price (€)', 'datetime': 'Date'}
 )
+# Set color
 line_color = 'green' if change_abs > 0 else 'red'
 fig_close.update_traces(line=dict(color=line_color), name='Close Price', showlegend=True)
+# Add close line to figure
 fig.add_trace(fig_close.data[0])
 # 2. MA10 line (no volume in hover)
 fig_ma10 = px.line(
@@ -145,7 +159,6 @@ fig_ma50 = px.line(
 )
 fig_ma50.update_traces(line=dict(color='purple', dash='dot'), name='MA50', showlegend=True)
 fig.add_trace(fig_ma50.data[0])
-# Add legends, axis titles and title
 fig.update_layout(
     title=f'{st.session_state.selected_ticker} Price with Moving Averages', 
     legend_title='Legend',
@@ -164,6 +177,15 @@ st.plotly_chart(fig, use_container_width=True)
 # STOCK DATA TABLE
 with st.expander(f" 📋 Table: {st.session_state.selected_ticker}", expanded=False):
     st.dataframe(df_filtered, height=400, use_container_width=True)
+
+# MULTI LINE CHART
+st.subheader("Multi-Line Chart of All Tickers")
+# multi line with all tickers
+fig_multi = go.Figure()
+# loop each ticker
+for ticker in st.session_state.tickers:
+    df_ticker = df[df['ticker'] == ticker]
+    fig_multi.add_trace(go.Scatter(x=df_ticker['datetime'], y=df_ticker['close'], mode='lines', name=ticker))
 
 # GENERAL NEWS
 # List all news JSON files like news_*.json
