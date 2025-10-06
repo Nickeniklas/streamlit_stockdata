@@ -1,5 +1,7 @@
 # Streamlit Data Visualization
 
+**Visualize general stock news and prices**
+
 Dynamic Visualization with Streamlit
 
 TwelveData, Finnhub, Streamlit
