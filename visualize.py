@@ -24,17 +24,39 @@ if "tickers_data" not in st.session_state:
         df = df.sort_values('datetime').reset_index(drop=True)
         tickers_data[ticker] = df
     st.session_state.tickers_data = tickers_data
+#print(st.session_state.tickers_data.keys())
+#print(f"data: {st.session_state.tickers_data}")
 
-# default ticker selection
+# Default selected ticker
 if "selected_ticker" not in st.session_state:
-    st.session_state.selected_ticker = st.session_state.tickers_data[0]
-# Dropdown for ticker selection
-dropdown_choice = st.selectbox("Select Stock Ticker", st.session_state.tickers_data, index=list(st.session_state.tickers_data).index(st.session_state.selected_ticker))
+    first_key = list(st.session_state.tickers_data.keys())[0]
+    st.session_state.selected_ticker = first_key
+
+# All ticker keys
+ticker_keys = list(st.session_state.tickers_data.keys())
+
+# Main dropdown
+dropdown_choice = st.selectbox(
+    "Select Stock Ticker",
+    ticker_keys,
+    index=ticker_keys.index(st.session_state.selected_ticker),
+    key="main_ticker_select"
+)
+
+# Sidebar dropdown
 with st.sidebar:
-    dropdown_choice = st.selectbox("Select Stock Ticker", st.session_state.tickers_data, index=list(st.session_state.tickers_data).index(st.session_state.selected_ticker))
-# Update session state if dropdown choice changes
+    sidebar_choice = st.selectbox(
+        "Select Stock Ticker",
+        ticker_keys,
+        index=ticker_keys.index(st.session_state.selected_ticker),
+        key="sidebar_ticker_select"
+    )
+    
+# Update session state if dropdown or sidebar choice changes
 if dropdown_choice != st.session_state.selected_ticker:
-    st.session_state.selected_ticker = st.session_state.tickers_data[dropdown_choice]
+    st.session_state.selected_ticker = dropdown_choice
+if sidebar_choice != st.session_state.selected_ticker:
+    st.session_state.selected_ticker = sidebar_choice
 
 # days filter defualt 30 days
 if "days" not in st.session_state:
