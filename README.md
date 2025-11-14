@@ -50,3 +50,6 @@ Command to run Visualization in browser:
 ```
 streamlit run visualize.py
 ```
+
+### Example View:
+![Streamlit browser view](/img/example_view.png)
